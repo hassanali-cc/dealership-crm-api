@@ -1,0 +1,29 @@
+POST http://localhost:8000/api/roles
+Content-Type: application/json
+
+{
+  "name": "Receptionist",
+  "hierarchyLevel": 4
+}
+
+###
+POST http://localhost:8000/api/users
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "employeeNumber": 1006,
+  "email": "john.doe@gmail.com",
+  "passwordHash": "CodingCops2025!",
+  "roleId": 3
+}
+
+###
+GET http://localhost:8000/api/users
+Accept: application/json
+
+###
+GET http://localhost:8000/api/
+Accept: application/json
+
+###

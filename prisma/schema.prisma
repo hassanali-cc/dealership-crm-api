@@ -1,0 +1,216 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("DATABASE_URL")
+}
+
+model Assignment {
+  id                     Int               @id @default(autoincrement())
+  customerId             Int
+  salespersonId          Int
+  dealNumber             Int?
+  dealType               CustomerDealType?
+  source                 CustomerSource?
+  vehicleInterest        String?
+  locationId             Int?
+  comment                String?
+  requestedSalesPersonId Int?
+  assignedSalesPersonId  Int?
+  createdAt              DateTime?         @default(now())
+  updatedAt              DateTime?         @updatedAt
+  closedAt               DateTime?
+  status                 AssignmentStatus
+  Customer               Customer          @relation(fields: [customerId], references: [customerId], onDelete: NoAction, onUpdate: NoAction)
+  User                   User              @relation(fields: [salespersonId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  Deal                   Deal?             @relation(fields: [dealNumber], references: [dealNumber], onDelete: NoAction, onUpdate: NoAction)
+  Location               CustomerLocation? @relation(fields: [locationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([customerId])
+  @@index([dealNumber])
+  @@index([salespersonId])
+}
+
+model CustomerLocation {
+  id   Int      @id @default(autoincrement())
+  name Location
+
+  Assignment Assignment[]
+}
+
+model Customer {
+  id             Int            @id @default(autoincrement())
+  customerId     Int            @unique
+  name           String
+  phone          String         @unique
+  email          String         @unique
+  address        String?
+  idVerification IdVerification @default(Not_Verified)
+  verificationId String?
+  createdBy      Int
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime?      @updatedAt
+  Assignment     Assignment[]
+  User           User           @relation(fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  Deal           Deal[]
+
+  @@index([createdBy])
+}
+
+model Deal {
+  id               Int        @id @default(autoincrement())
+  dealNumber       Int        @unique
+  StockNumber      String?
+  salesPerson1     Int
+  salesPerson2     Int
+  financeManager1  Int
+  make             String
+  model            String
+  year             String
+  mileage          String
+  color            String
+  vin              String
+  vehicleStatus    String
+  paymentMethod    String
+  relayDealType    String
+  relayDeliveryETA DateTime
+  certified        Boolean
+  relayDealStatus  String
+  isComplete       Boolean
+  salesManagerId   Int
+  estimatedGross   Decimal
+  dealType         DealType?
+  status           DealStatus
+  contractdate     DateTime?
+  createdBy        Int
+  purchasedBy      Int?
+  soldBy           Int?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime?  @updatedAt
+
+  Assignment                Assignment[]
+  User_Deal_createdByToUser User         @relation("Deal_createdByToUser", fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  Customer                  Customer?    @relation(fields: [purchasedBy], references: [customerId], onDelete: NoAction, onUpdate: NoAction)
+  User_Deal_soldByToUser    User?        @relation("Deal_soldByToUser", fields: [soldBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([createdBy])
+  @@index([purchasedBy])
+  @@index([soldBy])
+}
+
+model Role {
+  id             Int    @id @default(autoincrement())
+  name           Roles
+  hierarchyLevel Int
+  User           User[]
+}
+
+model Token {
+  id       Int       @id @default(autoincrement())
+  type     TokenType
+  token    String
+  expiry   DateTime
+  platform String?
+  userId   Int
+
+  User     User      @relation(fields: [userId], references: [employeeNumber])
+}
+
+model User {
+  id                        Int          @id @default(autoincrement())
+  employeeNumber            Int          @unique
+  name                      String
+  email                     String       @unique
+  passwordHash              String
+  roleId                    Int
+  subRole                   String?
+  roleType                  RoleType     @default(ALL)
+  active                    Boolean      @default(true)
+  currentStatus             Int          @default(1)
+  createdBy                 Int?
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime?    @updatedAt
+  Assignment                Assignment[]
+  Customer                  Customer[]
+  Token                     Token[]
+  Deal_Deal_createdByToUser Deal[]       @relation("Deal_createdByToUser")
+  Deal_Deal_soldByToUser    Deal[]       @relation("Deal_soldByToUser")
+  Role                      Role         @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User                      User?        @relation("UserToUser", fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  other_User                User[]       @relation("UserToUser")
+
+  @@index([createdBy])
+  @@index([roleId])
+}
+
+enum AssignmentStatus {
+  OPEN
+  SOLD
+  PROSPECT
+  CLOSED
+}
+
+enum CustomerDealType {
+  ALL
+  NEW
+  USED
+}
+
+enum CustomerSource {
+  FRESH_UP     @map("FRESH UP")
+  APPOINTMENT
+  MAILER
+  CREDIT_UNION @map("CREDIT UNION")
+  SERVICE
+  REFERRAL
+  PHONE
+  INTERNET
+}
+
+enum DealStatus {
+  ACTIVE
+  INPROGRESS
+  SOLD
+  HOLD
+}
+
+enum DealType {
+  NEW
+  USED
+}
+
+enum IdVerification {
+  Not_Verified @map("Not Verified")
+  Process
+  Verified
+}
+
+enum Location {
+  SHOWROOM
+  SERVICE
+  LOUNGE
+  FRONT_LOT            @map("FRONT LOT")
+  FINANCE_WAITING_ROOM @map("FINANCE WAITING ROOM")
+}
+
+enum Roles {
+  Director
+  Manager
+  SalesPerson  @map("Sales Person")
+  Receptionist
+}
+
+enum RoleType {
+  ALL
+  NEW
+  PREOWNED
+}
+
+enum TokenType {
+  ACCESS
+  REFRESH
+}
