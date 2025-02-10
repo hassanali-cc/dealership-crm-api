@@ -9,13 +9,41 @@ datasource db {
   // directUrl = env("DATABASE_URL")
 }
 
+model Accounting {
+  id           Int       @id @default(autoincrement())
+  dealNumber   Int
+  returnBy     Int
+  reason       String
+  status       Int
+  accountantId Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+
+  AccountingStatusHistory AccountingStatusHistory[]
+  CommentsAccounting      CommentsAccounting[]
+  Deal                    Deal                      @relation(fields: [dealNumber], references: [dealNumber], onDelete: NoAction, onUpdate: NoAction)
+  User                    User                      @relation("ReturnByUser", fields: [returnBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  AccountantUser          User                      @relation("AccountantUser", fields: [accountantId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model AccountingStatusHistory {
+  id             Int      @id @default(autoincrement())
+  accountingId   Int
+  status         Int
+  employeeNumber Int
+  createdAt      DateTime @default(now())
+
+  Accounting Accounting @relation(fields: [accountingId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User       User       @relation(fields: [employeeNumber], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+}
+
 model Assignment {
   id                     Int               @id @default(autoincrement())
   customerId             Int
   salespersonId          Int
   dealNumber             Int?
   dealType               CustomerDealType?
-  source                 CustomerSource?
+  sourceId               Int?
   vehicleInterest        String?
   locationId             Int?
   comment                String?
@@ -29,17 +57,58 @@ model Assignment {
   User                   User              @relation(fields: [salespersonId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
   Deal                   Deal?             @relation(fields: [dealNumber], references: [dealNumber], onDelete: NoAction, onUpdate: NoAction)
   Location               CustomerLocation? @relation(fields: [locationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  CustomerSource         CustomerSource?   @relation(fields: [sourceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([customerId])
   @@index([dealNumber])
   @@index([salespersonId])
 }
 
-model CustomerLocation {
-  id   Int      @id @default(autoincrement())
-  name Location
+model CommentsAccounting {
+  id             Int       @id @default(autoincrement())
+  dealNumber     Int
+  comment        String
+  employeeNumber Int
+  accountingId   Int
+  actionType     String?
+  commentDate    DateTime?
+  createdAt      DateTime  @default(now())
 
-  Assignment Assignment[]
+  Accounting Accounting @relation(fields: [accountingId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User       User       @relation(fields: [employeeNumber], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model CommentsCustomer {
+  id             Int       @id @default(autoincrement())
+  customerId     Int
+  comment        String
+  employeeNumber Int
+  commentDate    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime? @updatedAt
+
+  Customer Customer @relation(fields: [customerId], references: [customerId], onDelete: NoAction, onUpdate: NoAction)
+  User     User     @relation(fields: [employeeNumber], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model CommentsDeal {
+  id             Int       @id @default(autoincrement())
+  dealNumber     Int
+  comment        String
+  employeeNumber Int
+  commentDate    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime? @updatedAt
+
+  Deal Deal? @relation(fields: [dealNumber], references: [dealNumber], onDelete: NoAction, onUpdate: NoAction)
+  User User  @relation(fields: [employeeNumber], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model CompanySource {
+  id        Int    @id @default(autoincrement())
+  sourceId  Int
+  name      String
+  companyId Int
 }
 
 model Customer {
@@ -54,52 +123,134 @@ model Customer {
   createdBy      Int
   createdAt      DateTime       @default(now())
   updatedAt      DateTime?      @updatedAt
-  Assignment     Assignment[]
-  User           User           @relation(fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
-  Deal           Deal[]
+
+  Assignment       Assignment[]
+  CommentsCustomer CommentsCustomer[]
+  CustomerQueue    CustomerQueue[]
+  User             User               @relation(fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  Deal             Deal[]
 
   @@index([createdBy])
 }
 
+model CustomerLocation {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  Assignment Assignment[]
+}
+
+model CustomerQueue {
+  id          Int       @id @default(autoincrement())
+  requestedId Int?
+  acceptorId  Int?
+  customerId  Int
+  declinerIds String?
+  accepted    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+
+  Customer      Customer @relation(fields: [customerId], references: [customerId], onDelete: NoAction, onUpdate: NoAction)
+  RequestedUser User?    @relation("RequestedUser", fields: [requestedId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  AcceptorUser  User?    @relation("AcceptorUser", fields: [acceptorId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model CustomerSource {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  Assignment Assignment[]
+}
+
 model Deal {
-  id               Int        @id @default(autoincrement())
-  dealNumber       Int        @unique
+  id               Int         @id @default(autoincrement())
+  dealNumber       Int         @unique
   StockNumber      String?
-  salesPerson1     Int
-  salesPerson2     Int
-  financeManager1  Int
-  make             String
-  model            String
-  year             String
-  mileage          String
-  color            String
-  vin              String
-  vehicleStatus    String
-  paymentMethod    String
-  relayDealType    String
-  relayDeliveryETA DateTime
-  certified        Boolean
-  relayDealStatus  String
-  isComplete       Boolean
-  salesManagerId   Int
-  estimatedGross   Decimal
+  salesPerson1     Int?
+  salesPerson2     Int?
+  financeManager1  Int?
+  make             String?
+  model            String?
+  year             String?
+  mileage          String?
+  color            String?
+  vin              String?
+  vehicleStatus    String?
+  paymentMethod    String?
+  relayDealType    String?
+  relayDeliveryETA DateTime?
+  certified        Boolean?
+  relayDealStatus  String?
+  isComplete       Boolean     @default(false)
+  salesManagerId   Int?
+  estimatedGross   Decimal?
   dealType         DealType?
-  status           DealStatus
+  status           DealStatus?
   contractdate     DateTime?
   createdBy        Int
   purchasedBy      Int?
   soldBy           Int?
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime?  @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime?   @updatedAt
 
-  Assignment                Assignment[]
-  User_Deal_createdByToUser User         @relation("Deal_createdByToUser", fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
-  Customer                  Customer?    @relation(fields: [purchasedBy], references: [customerId], onDelete: NoAction, onUpdate: NoAction)
-  User_Deal_soldByToUser    User?        @relation("Deal_soldByToUser", fields: [soldBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  Assignment         Assignment[]
+  Accounting         Accounting[]
+  CommentsDeal       CommentsDeal[]
+  DealAssignQueue    DealAssignQueue[]
+  DealDocument       DealDocument[]
+  CreatedByUser      User              @relation("CreatedByUser", fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  Customer           Customer?         @relation(fields: [purchasedBy], references: [customerId], onDelete: NoAction, onUpdate: NoAction)
+  SoldByUser         User?             @relation("SoldByUser", fields: [soldBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  SalesPerson1User   User?             @relation("SalesPerson1User", fields: [salesPerson1], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  SalesPerson2User   User?             @relation("SalesPerson2User", fields: [salesPerson2], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  FinanceManagerUser User?             @relation("FinanceManagerUser", fields: [financeManager1], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  SalesManagerUser   User?             @relation("SalesManagerUser", fields: [salesManagerId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([createdBy])
   @@index([purchasedBy])
   @@index([soldBy])
+}
+
+model DealAssignQueue {
+  id               Int      @id @default(autoincrement())
+  financeManagerId Int
+  dealId           Int
+  assignedAt       DateTime
+  priority         Boolean  @default(false)
+  declinerIds      String?
+  hasPriorAssigned Boolean  @default(false)
+  hasHighPriority  Boolean  @default(false)
+
+  Deal Deal @relation(fields: [dealId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User User @relation(fields: [financeManagerId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model DealDocument {
+  id             Int       @id @default(autoincrement())
+  documentId     Int?
+  dealNumber     Int
+  name           String
+  provided       Boolean   @default(false)
+  addedAt        DateTime? @default(now())
+  requiredAt     DateTime?
+  receivedAt     DateTime?
+  url            String?
+  requiredUserId Int
+  order          Int
+  receiverUserId Int?
+  userId         Int
+
+  Deal         Deal  @relation(fields: [dealNumber], references: [dealNumber], onDelete: NoAction, onUpdate: NoAction)
+  RequiredUser User  @relation("RequiredUser", fields: [requiredUserId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  ReceiverUser User? @relation("ReceiverUser", fields: [receiverUserId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  User         User  @relation("DealDocumentUser", fields: [userId], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model DealState {
+  id     Int     @id @default(autoincrement())
+  name   String
+  order  Int
+  active Boolean @default(true)
 }
 
 model Role {
@@ -117,31 +268,48 @@ model Token {
   platform String?
   userId   Int
 
-  User     User      @relation(fields: [userId], references: [employeeNumber])
+  User User @relation(fields: [userId], references: [employeeNumber])
 }
 
 model User {
-  id                        Int          @id @default(autoincrement())
-  employeeNumber            Int          @unique
-  name                      String
-  email                     String       @unique
-  passwordHash              String
-  roleId                    Int
-  subRole                   String?
-  roleType                  RoleType     @default(ALL)
-  active                    Boolean      @default(true)
-  currentStatus             Int          @default(1)
-  createdBy                 Int?
-  createdAt                 DateTime     @default(now())
-  updatedAt                 DateTime?    @updatedAt
-  Assignment                Assignment[]
-  Customer                  Customer[]
-  Token                     Token[]
-  Deal_Deal_createdByToUser Deal[]       @relation("Deal_createdByToUser")
-  Deal_Deal_soldByToUser    Deal[]       @relation("Deal_soldByToUser")
-  Role                      Role         @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  User                      User?        @relation("UserToUser", fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
-  other_User                User[]       @relation("UserToUser")
+  id             Int       @id @default(autoincrement())
+  employeeNumber Int       @unique
+  name           String
+  email          String    @unique
+  passwordHash   String
+  roleId         Int
+  subRole        String?
+  roleType       RoleType  @default(ALL)
+  active         Boolean   @default(true)
+  currentStatus  Int       @default(1)
+  createdBy      Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime? @updatedAt
+
+  Assignment              Assignment[]
+  Customer                Customer[]
+  CommentsAccounting      CommentsAccounting[]
+  CommentsCustomer        CommentsCustomer[]
+  DealAssignQueue         DealAssignQueue[]
+  CommentsDeal            CommentsDeal[]
+  DealDocumentUser        DealDocument[]            @relation("DealDocumentUser")
+  ReceiverUser            DealDocument[]            @relation("ReceiverUser")
+  RequiredUser            DealDocument[]            @relation("RequiredUser")
+  RequestedUser           CustomerQueue[]           @relation("RequestedUser")
+  AcceptorUser            CustomerQueue[]           @relation("AcceptorUser")
+  Token                   Token[]
+  ReturnByUser            Accounting[]              @relation("ReturnByUser")
+  AccountantUser          Accounting[]              @relation("AccountantUser")
+  AccountingStatusHistory AccountingStatusHistory[]
+  CreatedByUser           Deal[]                    @relation("CreatedByUser")
+  SoldByUser              Deal[]                    @relation("SoldByUser")
+  SalesPerson1User        Deal[]                    @relation("SalesPerson1User")
+  SalesPerson2User        Deal[]                    @relation("SalesPerson2User")
+  FinanceManagerUser      Deal[]                    @relation("FinanceManagerUser")
+  SalesManagerUser        Deal[]                    @relation("SalesManagerUser")
+  Role                    Role                      @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User                    User?                     @relation("UserToUser", fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
+  other_User              User[]                    @relation("UserToUser")
 
   @@index([createdBy])
   @@index([roleId])
@@ -160,17 +328,6 @@ enum CustomerDealType {
   USED
 }
 
-enum CustomerSource {
-  FRESH_UP     @map("FRESH UP")
-  APPOINTMENT
-  MAILER
-  CREDIT_UNION @map("CREDIT UNION")
-  SERVICE
-  REFERRAL
-  PHONE
-  INTERNET
-}
-
 enum DealStatus {
   ACTIVE
   INPROGRESS
@@ -187,14 +344,6 @@ enum IdVerification {
   Not_Verified @map("Not Verified")
   Process
   Verified
-}
-
-enum Location {
-  SHOWROOM
-  SERVICE
-  LOUNGE
-  FRONT_LOT            @map("FRONT LOT")
-  FINANCE_WAITING_ROOM @map("FINANCE WAITING ROOM")
 }
 
 enum Roles {
