@@ -127,7 +127,7 @@ model Customer {
   phone          String         @unique
   email          String         @unique
   address        String?
-  idVerification IdVerification @default(NotVerified)
+  idVerification IdVerification @default(Not_Verified)
   verificationId String?
   createdBy      Int
   createdAt      DateTime       @default(now())
@@ -268,43 +268,11 @@ model DealState {
   active Boolean @default(true)
 }
 
-model CommonLookup {
+model Lookup {
   id          Int    @id @default(autoincrement())
-  type        Lookup
+  type        String // ask: enum?
   typeId      Int
-  description String
-}
-
-model LookupContractStatus {
-  id   Int            @id @default(autoincrement())
-  name ContractStatus
-}
-
-model LookupFinanceSource {
-  id   Int           @id @default(autoincrement())
-  name FinanceSource
-}
-
-model LookupMakeReadyStatus {
-  id   Int             @id @default(autoincrement())
-  name MakeReadyStatus
-
-  MakeReady MakeReady[]
-}
-
-model LookupRelayDealStatus {
-  id   Int             @id @default(autoincrement())
-  name RelayDealStatus
-}
-
-model LookupRelayDealType {
-  id   Int           @id @default(autoincrement())
-  name RelayDealType
-}
-
-model LookupSalesPersonStatus {
-  id   Int               @id @default(autoincrement())
-  name SalesPersonStatus
+  description String // ask: enum?
 }
 
 model MakeReady {
@@ -322,11 +290,18 @@ model MakeReady {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime? @updatedAt
 
-  NotificationLog       NotificationLog[]
-  Deal                  Deal                  @relation(fields: [dealNumber], references: [dealNumber], onUpdate: NoAction, onDelete: NoAction)
-  AssignedUser          User                  @relation("AssignedUser", fields: [assignedTo], references: [employeeNumber], onUpdate: NoAction, onDelete: NoAction)
-  SalesManagerUser      User                  @relation("SalesManagerUser", fields: [salesManagerId], references: [employeeNumber], onUpdate: NoAction, onDelete: NoAction)
-  LookupMakeReadyStatus LookupMakeReadyStatus @relation(fields: [statusId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  NotificationLog  NotificationLog[]
+  Deal             Deal              @relation(fields: [dealNumber], references: [dealNumber], onUpdate: NoAction, onDelete: NoAction)
+  AssignedUser     User              @relation("AssignedUser", fields: [assignedTo], references: [employeeNumber], onUpdate: NoAction, onDelete: NoAction)
+  SalesManagerUser User              @relation("SalesManagerUser", fields: [salesManagerId], references: [employeeNumber], onUpdate: NoAction, onDelete: NoAction)
+  MakeReadyStatus  MakeReadyStatus   @relation(fields: [statusId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+}
+
+model MakeReadyStatus {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  MakeReady MakeReady[]
 }
 
 model NotificationLog {
@@ -359,7 +334,7 @@ model ObjectiveMain {
   id         Int                @id @default(autoincrement())
   month      String
   year       String
-  objective  Decimal            @default(0.00)
+  objective  Decimal            @default(0.0)
   salesType  ObjectiveSalesType
   createdAt  DateTime           @default(now())
   updatedAt  DateTime?          @updatedAt
@@ -384,7 +359,7 @@ model Plate {
   id            Int       @id @default(autoincrement())
   dealNumber    Int
   status        Int
-  plateNumber   String
+  plateNumber   String? // ask: is optionable?
   color         String?
   model         String?
   make          String?
@@ -444,13 +419,12 @@ model Services {
 }
 
 model Token {
-  id          Int       @id @default(autoincrement())
-  type        TokenType
-  token       String
-  expiry      DateTime
-  platform    String?
-  userId      Int
-  blacklisted Boolean   @default(false)
+  id       Int       @id @default(autoincrement())
+  type     TokenType
+  token    String
+  expiry   DateTime
+  platform String?
+  userId   Int
 
   User User @relation(fields: [userId], references: [employeeNumber])
 }
@@ -502,7 +476,7 @@ model User {
   CommentByUser           NotificationLog[]         @relation("CommentByUser")
   Role                    Role                      @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   User                    User?                     @relation("UserToUser", fields: [createdBy], references: [employeeNumber], onDelete: NoAction, onUpdate: NoAction)
-  OtherUser               User[]                    @relation("UserToUser")
+  other_User              User[]                    @relation("UserToUser")
 
   @@index([createdBy])
   @@index([roleId])
@@ -534,23 +508,9 @@ enum DealType {
 }
 
 enum IdVerification {
-  NotVerified @map("Not Verified")
+  Not_Verified @map("Not Verified")
   Process
   Verified
-}
-
-enum Lookup {
-  AccountingStatus
-  CustomerStatus
-  DealType
-  PaymentMethod
-  PlateStatus
-  ReceptionistStatus
-  SaleStatus
-  UpLog
-  UserStatus
-  VehicleLocation
-  VehicleStatus
 }
 
 enum ObjectiveSalesType {
@@ -574,84 +534,4 @@ enum RoleType {
 enum TokenType {
   ACCESS
   REFRESH
-}
-
-enum MakeReadyStatus {
-  MakeReadyAssigned @map("Make Ready Assigned")
-  InProcess         @map("In Process")
-  Hold
-  Completed
-}
-
-enum RelayDealStatus {
-  Sold
-  InProcess          @map("In Process")
-  CustomerSigned     @map("Customer Signed")
-  FinanceComplete    @map("Finance Complete")
-  AdminBillReviewed  @map("Admin / Bill Reviewed")
-  Finalized
-  Dead
-  Pending
-  Approved
-  DealReturned       @map("Deal Returned")
-  AccountingReturned @map("Accounting Returned")
-  Conditioned
-  Scanned
-  Declined
-  FinanceReturned    @map("Finance Returned")
-}
-
-enum RelayDealType {
-  CustomerPresent @map("Customer Present")
-  BoxClose        @map("Box Close")
-  PhoneClose      @map("Phone Close")
-  Appointment
-  Request
-  Submit
-}
-
-enum SalesPersonStatus {
-  Available
-  WithCustomer  @map("With Customer")
-  Sick
-  Vacation
-  Unavailable
-  Meeting
-  BDPhone       @map("BD - Phone")
-  Delivery
-  GoneForTheDay @map("Gone For The Day")
-  Off
-  Demo
-  Training
-  Lunch
-}
-
-enum ContractStatus {
-  Signed
-  ContractHeld       @map("Contract Held")
-  Funded
-  Booked
-  ReadyForAssignment @map("Ready for Assignment")
-  NewMessage         @map("New Message")
-  eCPaperOut         @map("eC Paper Out")
-  eCBooked           @map("eC Booked")
-  eCCancel           @map("eC Cancel")
-  eCError            @map("eC Error")
-  eCFunded           @map("eC Funded")
-}
-
-enum FinanceSource {
-  Lender
-  FinanceCompany @map("Finance Company")
-  LienHolder     @map("Lien Holder")
-  Available
-  WithCustomer   @map("With Customer")
-  Sick
-  Vacation
-  Unavailable
-  Meeting
-  BDPhone        @map("BD - Phone")
-  GoneForTheDay  @map("Gone For The Day")
-  Off
-  Training
 }
