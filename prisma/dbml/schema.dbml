@@ -1,0 +1,731 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Accounting {
+  id Int [pk, increment]
+  dealNumber Int [not null]
+  returnBy Int [not null]
+  reason String [not null]
+  status Int [not null]
+  accountantId Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  AccountingStatusHistory AccountingStatusHistory [not null]
+  CommentsAccounting CommentsAccounting [not null]
+  NotificationLog NotificationLog [not null]
+  Deal Deal [not null]
+  User User [not null]
+  AccountantUser User [not null]
+}
+
+Table AccountingStatusHistory {
+  id Int [pk, increment]
+  accountingId Int [not null]
+  status Int [not null]
+  employeeNumber Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  Accounting Accounting [not null]
+  User User [not null]
+}
+
+Table Assignment {
+  id Int [pk, increment]
+  customerId Int [not null]
+  salespersonId Int [not null]
+  dealNumber Int
+  dealType CustomerDealType
+  sourceId Int
+  vehicleInterest String
+  locationId Int
+  comment String
+  requestedSalesPersonId Int
+  assignedSalesPersonId Int
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime
+  closedAt DateTime
+  status AssignmentStatus [not null]
+  Customer Customer [not null]
+  User User [not null]
+  Deal Deal
+  Location CustomerLocation
+  CustomerSource CustomerSource
+}
+
+Table CommentsAccounting {
+  id Int [pk, increment]
+  dealNumber Int [not null]
+  comment String [not null]
+  employeeNumber Int [not null]
+  accountingId Int [not null]
+  actionType String
+  commentDate DateTime
+  createdAt DateTime [default: `now()`, not null]
+  Accounting Accounting [not null]
+  User User [not null]
+}
+
+Table CommentsCustomer {
+  id Int [pk, increment]
+  customerId Int [not null]
+  comment String [not null]
+  employeeNumber Int [not null]
+  commentDate DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  Customer Customer [not null]
+  User User [not null]
+}
+
+Table CommentsDeal {
+  id Int [pk, increment]
+  dealNumber Int [not null]
+  comment String [not null]
+  employeeNumber Int [not null]
+  commentDate DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  Deal Deal
+  User User [not null]
+}
+
+Table CompanySource {
+  id Int [pk, increment]
+  sourceId Int [not null]
+  name String [not null]
+  companyId Int [not null]
+}
+
+Table DMSConfiguration {
+  id Int [pk, increment]
+  title String [not null]
+  providerName String [not null]
+  url String
+  configuration String [not null]
+}
+
+Table Customer {
+  id Int [pk, increment]
+  customerId Int [unique, not null]
+  name String [not null]
+  phone String [unique, not null]
+  email String [unique, not null]
+  address String
+  idVerification IdVerification [not null, default: 'NotVerified']
+  verificationId String
+  createdBy Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  Assignment Assignment [not null]
+  CommentsCustomer CommentsCustomer [not null]
+  CustomerQueue CustomerQueue [not null]
+  NotificationLog NotificationLog [not null]
+  Plate Plate [not null]
+  User User [not null]
+  Deal Deal [not null]
+}
+
+Table CustomerLocation {
+  id Int [pk, increment]
+  name String [not null]
+  Assignment Assignment [not null]
+}
+
+Table CustomerQueue {
+  id Int [pk, increment]
+  requestedId Int
+  acceptorId Int
+  customerId Int [not null]
+  declinerIds String
+  accepted Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  Customer Customer [not null]
+  RequestedUser User
+  AcceptorUser User
+}
+
+Table CustomerSource {
+  id Int [pk, increment]
+  name String [not null]
+  Assignment Assignment [not null]
+}
+
+Table Deal {
+  id Int [pk, increment]
+  dealNumber Int [unique, not null]
+  StockNumber String
+  salesPerson1 Int
+  salesPerson2 Int
+  financeManager1 Int
+  make String
+  model String
+  year String
+  mileage String
+  color String
+  vin String
+  vehicleStatus String
+  paymentMethod String
+  relayDealType String
+  relayDeliveryETA DateTime
+  certified Boolean
+  relayDealStatus String
+  isComplete Boolean [not null, default: false]
+  salesManagerId Int
+  estimatedGross Decimal
+  dealType DealType
+  status DealStatus
+  contractdate DateTime
+  createdBy Int [not null]
+  purchasedBy Int
+  soldBy Int
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  Assignment Assignment [not null]
+  Accounting Accounting [not null]
+  CommentsDeal CommentsDeal [not null]
+  DealAssignQueue DealAssignQueue [not null]
+  DealDocument DealDocument [not null]
+  MakeReady MakeReady [not null]
+  NotificationLog NotificationLog [not null]
+  Plate Plate [not null]
+  RelayDealHistory RelayDealHistory [not null]
+  CreatedByUser User [not null]
+  Customer Customer
+  SoldByUser User
+  SalesPerson1User User
+  SalesPerson2User User
+  FinanceManagerUser User
+  SalesManagerUser User
+}
+
+Table DealAssignQueue {
+  id Int [pk, increment]
+  financeManagerId Int [not null]
+  dealId Int [not null]
+  assignedAt DateTime [not null]
+  priority Boolean [not null, default: false]
+  declinerIds String
+  hasPriorAssigned Boolean [not null, default: false]
+  hasHighPriority Boolean [not null, default: false]
+  Deal Deal [not null]
+  User User [not null]
+}
+
+Table DealDocument {
+  id Int [pk, increment]
+  documentId Int
+  dealNumber Int [not null]
+  name String [not null]
+  provided Boolean [not null, default: false]
+  addedAt DateTime [default: `now()`]
+  requiredAt DateTime
+  receivedAt DateTime
+  url String
+  requiredUserId Int [not null]
+  order Int [not null]
+  receiverUserId Int
+  userId Int [not null]
+  Deal Deal [not null]
+  RequiredUser User [not null]
+  ReceiverUser User
+  User User [not null]
+}
+
+Table DealState {
+  id Int [pk, increment]
+  name String [not null]
+  order Int [not null]
+  active Boolean [not null, default: true]
+}
+
+Table CommonLookup {
+  id Int [pk, increment]
+  type Lookup [not null]
+  typeId Int [not null]
+  description String [not null]
+}
+
+Table LookupContractStatus {
+  id Int [pk, increment]
+  name ContractStatus [not null]
+}
+
+Table LookupFinanceSource {
+  id Int [pk, increment]
+  name FinanceSource [not null]
+}
+
+Table LookupMakeReadyStatus {
+  id Int [pk, increment]
+  name MakeReadyStatus [not null]
+  MakeReady MakeReady [not null]
+}
+
+Table LookupRelayDealStatus {
+  id Int [pk, increment]
+  name RelayDealStatus [not null]
+}
+
+Table LookupRelayDealType {
+  id Int [pk, increment]
+  name RelayDealType [not null]
+}
+
+Table LookupSalesPersonStatus {
+  id Int [pk, increment]
+  name SalesPersonStatus [not null]
+}
+
+Table MakeReady {
+  id Int [pk, increment]
+  dealNumber Int [not null]
+  dateNeeded DateTime
+  timeNeeded DateTime
+  deliveryTime DateTime
+  deliveryDate DateTime
+  assignedTo Int [not null]
+  salesManagerId Int [not null]
+  vehicleLocation String
+  adds String
+  statusId Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  NotificationLog NotificationLog [not null]
+  Deal Deal [not null]
+  AssignedUser User [not null]
+  SalesManagerUser User [not null]
+  LookupMakeReadyStatus LookupMakeReadyStatus [not null]
+}
+
+Table NotificationLog {
+  id Int [pk, increment]
+  department String [not null]
+  customerId Int
+  dealNumber Int
+  individualDealSheatId Int
+  makeReadyId Int
+  accountingId Int
+  employeeNumber Int [not null]
+  section String [not null]
+  commentId Int
+  commentBy Int
+  comment String
+  isReviewed Boolean [not null, default: false]
+  reviewedAt DateTime
+  plateId Int
+  createdAt DateTime [default: `now()`, not null]
+  Customer Customer
+  Deal Deal
+  MakeReady MakeReady
+  Accounting Accounting
+  NotifiedUser User [not null]
+  CommentByUser User
+}
+
+Table ObjectiveMain {
+  id Int [pk, increment]
+  month String [not null]
+  year String [not null]
+  objective Decimal [not null, default: 0]
+  salesType ObjectiveSalesType [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  isEditable Boolean [not null, default: false]
+}
+
+Table ObjectiveSalesPerson {
+  id Int [pk, increment]
+  employeeNumber Int [not null]
+  month String [not null]
+  year String [not null]
+  objective Decimal [not null, default: 0]
+  salesType ObjectiveSalesType [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  isEditable Boolean [not null, default: false]
+  User User [not null]
+}
+
+Table Plate {
+  id Int [pk, increment]
+  dealNumber Int [not null]
+  status Int [not null]
+  plateNumber String [not null]
+  color String
+  model String
+  make String
+  email String
+  homePhone String
+  businessPhone String
+  customerId Int [not null]
+  salesPerson1 Int
+  salesPerson2 Int
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  PlateStatusHistory PlateStatusHistory [not null]
+  Deal Deal [not null]
+  Customer Customer [not null]
+  SalesPerson1User User
+  SalesPerson2User User
+}
+
+Table PlateStatusHistory {
+  id Int [pk, increment]
+  plateId Int [not null]
+  status Int [not null]
+  comment String
+  employeeNumber Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  Plate Plate [not null]
+  User User [not null]
+}
+
+Table RelayDealHistory {
+  id Int [pk, increment]
+  dealId Int [not null]
+  status Int [not null]
+  employeeNumber Int
+  createdAt DateTime [default: `now()`, not null]
+  Deal Deal [not null]
+  User User
+}
+
+Table Role {
+  id Int [pk, increment]
+  name Roles [not null]
+  hierarchyLevel Int [not null]
+  User User [not null]
+}
+
+Table Services {
+  id Int [pk, increment]
+  dealType DealType [not null]
+  paymentMethod String [not null]
+  estimatedGross Decimal [not null, default: 0]
+  name String [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table Token {
+  id Int [pk, increment]
+  type TokenType [not null]
+  token String [not null]
+  expiry DateTime [not null]
+  platform String
+  userId Int [not null]
+  blacklisted Boolean [not null, default: false]
+  User User [not null]
+}
+
+Table User {
+  id Int [pk, increment]
+  employeeNumber Int [unique, not null]
+  name String [not null]
+  email String [unique, not null]
+  passwordHash String [not null]
+  roleId Int [not null]
+  subRole String
+  roleType RoleType [not null, default: 'ALL']
+  active Boolean [not null, default: true]
+  currentStatus Int [not null, default: 1]
+  createdBy Int
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  Assignment Assignment [not null]
+  Customer Customer [not null]
+  CommentsAccounting CommentsAccounting [not null]
+  CommentsCustomer CommentsCustomer [not null]
+  DealAssignQueue DealAssignQueue [not null]
+  CommentsDeal CommentsDeal [not null]
+  DealDocumentUser DealDocument [not null]
+  ReceiverUser DealDocument [not null]
+  RequiredUser DealDocument [not null]
+  RequestedUser CustomerQueue [not null]
+  AcceptorUser CustomerQueue [not null]
+  Token Token [not null]
+  ReturnByUser Accounting [not null]
+  AccountantUser Accounting [not null]
+  AccountingStatusHistory AccountingStatusHistory [not null]
+  MRSalesManagerUser MakeReady [not null]
+  MRAssignedUser MakeReady [not null]
+  CreatedByUser Deal [not null]
+  ObjectiveSalesPerson ObjectiveSalesPerson [not null]
+  PlateStatusHistory PlateStatusHistory [not null]
+  RelayDealHistory RelayDealHistory [not null]
+  PlateSalesPerson1User Plate [not null]
+  PlateSalesPerson2User Plate [not null]
+  SoldByUser Deal [not null]
+  SalesPerson1User Deal [not null]
+  SalesPerson2User Deal [not null]
+  FinanceManagerUser Deal [not null]
+  SalesManagerUser Deal [not null]
+  NotifiedUser NotificationLog [not null]
+  CommentByUser NotificationLog [not null]
+  Role Role [not null]
+  User User
+  OtherUser User [not null]
+}
+
+Table SalesManagerUser {
+  mrsalesmanageruserId Int [ref: > MakeReady.id]
+  salesmanageruserId Int [ref: > Deal.id]
+}
+
+Enum AssignmentStatus {
+  OPEN
+  SOLD
+  PROSPECT
+  CLOSED
+}
+
+Enum CustomerDealType {
+  ALL
+  NEW
+  USED
+}
+
+Enum DealStatus {
+  ACTIVE
+  INPROGRESS
+  SOLD
+  HOLD
+}
+
+Enum DealType {
+  NEW
+  USED
+}
+
+Enum IdVerification {
+  NotVerified
+  Process
+  Verified
+}
+
+Enum Lookup {
+  AccountingStatus
+  CustomerStatus
+  DealType
+  PaymentMethod
+  PlateStatus
+  ReceptionistStatus
+  SaleStatus
+  UpLog
+  UserStatus
+  VehicleLocation
+  VehicleStatus
+}
+
+Enum ObjectiveSalesType {
+  NEW
+  PO
+}
+
+Enum Roles {
+  Director
+  Manager
+  SalesPerson
+  Receptionist
+}
+
+Enum RoleType {
+  ALL
+  NEW
+  PREOWNED
+}
+
+Enum TokenType {
+  ACCESS
+  REFRESH
+}
+
+Enum MakeReadyStatus {
+  MakeReadyAssigned
+  InProcess
+  Hold
+  Completed
+}
+
+Enum RelayDealStatus {
+  Sold
+  InProcess
+  CustomerSigned
+  FinanceComplete
+  AdminBillReviewed
+  Finalized
+  Dead
+  Pending
+  Approved
+  DealReturned
+  AccountingReturned
+  Conditioned
+  Scanned
+  Declined
+  FinanceReturned
+}
+
+Enum RelayDealType {
+  CustomerPresent
+  BoxClose
+  PhoneClose
+  Appointment
+  Request
+  Submit
+}
+
+Enum SalesPersonStatus {
+  Available
+  WithCustomer
+  Sick
+  Vacation
+  Unavailable
+  Meeting
+  BDPhone
+  Delivery
+  GoneForTheDay
+  Off
+  Demo
+  Training
+  Lunch
+}
+
+Enum ContractStatus {
+  Signed
+  ContractHeld
+  Funded
+  Booked
+  ReadyForAssignment
+  NewMessage
+  eCPaperOut
+  eCBooked
+  eCCancel
+  eCError
+  eCFunded
+}
+
+Enum FinanceSource {
+  Lender
+  FinanceCompany
+  LienHolder
+  Available
+  WithCustomer
+  Sick
+  Vacation
+  Unavailable
+  Meeting
+  BDPhone
+  GoneForTheDay
+  Off
+  Training
+}
+
+Ref: Accounting.dealNumber > Deal.dealNumber [delete: No Action]
+
+Ref: Accounting.returnBy > User.employeeNumber [delete: No Action]
+
+Ref: Accounting.accountantId > User.employeeNumber [delete: No Action]
+
+Ref: AccountingStatusHistory.accountingId > Accounting.id [delete: No Action]
+
+Ref: AccountingStatusHistory.employeeNumber > User.employeeNumber [delete: No Action]
+
+Ref: Assignment.customerId > Customer.customerId [delete: No Action]
+
+Ref: Assignment.salespersonId > User.employeeNumber [delete: No Action]
+
+Ref: Assignment.dealNumber > Deal.dealNumber [delete: No Action]
+
+Ref: Assignment.locationId > CustomerLocation.id [delete: No Action]
+
+Ref: Assignment.sourceId > CustomerSource.id [delete: No Action]
+
+Ref: CommentsAccounting.accountingId > Accounting.id [delete: No Action]
+
+Ref: CommentsAccounting.employeeNumber > User.employeeNumber [delete: No Action]
+
+Ref: CommentsCustomer.customerId > Customer.customerId [delete: No Action]
+
+Ref: CommentsCustomer.employeeNumber > User.employeeNumber [delete: No Action]
+
+Ref: CommentsDeal.dealNumber > Deal.dealNumber [delete: No Action]
+
+Ref: CommentsDeal.employeeNumber > User.employeeNumber [delete: No Action]
+
+Ref: Customer.createdBy > User.employeeNumber [delete: No Action]
+
+Ref: CustomerQueue.customerId > Customer.customerId [delete: No Action]
+
+Ref: CustomerQueue.requestedId > User.employeeNumber [delete: No Action]
+
+Ref: CustomerQueue.acceptorId > User.employeeNumber [delete: No Action]
+
+Ref: Deal.createdBy > User.employeeNumber [delete: No Action]
+
+Ref: Deal.purchasedBy > Customer.customerId [delete: No Action]
+
+Ref: Deal.soldBy > User.employeeNumber [delete: No Action]
+
+Ref: Deal.salesPerson1 > User.employeeNumber [delete: No Action]
+
+Ref: Deal.salesPerson2 > User.employeeNumber [delete: No Action]
+
+Ref: Deal.financeManager1 > User.employeeNumber [delete: No Action]
+
+Ref: Deal.salesManagerId > User.employeeNumber [delete: No Action]
+
+Ref: DealAssignQueue.dealId > Deal.id [delete: No Action]
+
+Ref: DealAssignQueue.financeManagerId > User.employeeNumber [delete: No Action]
+
+Ref: DealDocument.dealNumber > Deal.dealNumber [delete: No Action]
+
+Ref: DealDocument.requiredUserId > User.employeeNumber [delete: No Action]
+
+Ref: DealDocument.receiverUserId > User.employeeNumber [delete: No Action]
+
+Ref: DealDocument.userId > User.employeeNumber [delete: No Action]
+
+Ref: MakeReady.dealNumber > Deal.dealNumber [delete: No Action]
+
+Ref: MakeReady.assignedTo > User.employeeNumber [delete: No Action]
+
+Ref: MakeReady.salesManagerId > User.employeeNumber [delete: No Action]
+
+Ref: MakeReady.statusId > LookupMakeReadyStatus.id [delete: No Action]
+
+Ref: NotificationLog.customerId > Customer.customerId [delete: No Action]
+
+Ref: NotificationLog.dealNumber > Deal.dealNumber [delete: No Action]
+
+Ref: NotificationLog.makeReadyId > MakeReady.id [delete: No Action]
+
+Ref: NotificationLog.accountingId > Accounting.id [delete: No Action]
+
+Ref: NotificationLog.employeeNumber > User.employeeNumber [delete: No Action]
+
+Ref: NotificationLog.commentBy > User.employeeNumber [delete: No Action]
+
+Ref: ObjectiveSalesPerson.employeeNumber > User.employeeNumber [delete: No Action]
+
+Ref: Plate.dealNumber > Deal.dealNumber [delete: No Action]
+
+Ref: Plate.customerId > Customer.customerId [delete: No Action]
+
+Ref: Plate.salesPerson1 > User.employeeNumber [delete: No Action]
+
+Ref: Plate.salesPerson2 > User.employeeNumber [delete: No Action]
+
+Ref: PlateStatusHistory.plateId > Plate.id [delete: No Action]
+
+Ref: PlateStatusHistory.employeeNumber > User.employeeNumber [delete: No Action]
+
+Ref: RelayDealHistory.dealId > Deal.id [delete: No Action]
+
+Ref: RelayDealHistory.employeeNumber > User.employeeNumber [delete: No Action]
+
+Ref: Token.userId > User.employeeNumber
+
+Ref: User.roleId > Role.id [delete: No Action]
+
+Ref: User.createdBy - User.employeeNumber [delete: No Action]
